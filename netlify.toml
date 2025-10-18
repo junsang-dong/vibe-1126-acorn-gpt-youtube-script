@@ -1,0 +1,68 @@
+[build]
+  # Build command
+  command = "npm run build"
+  
+  # Directory with the static files
+  publish = "dist"
+  
+  # Functions directory (for serverless functions)
+  functions = "netlify/functions"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "18"
+  # Enable ES modules in functions
+  AWS_LAMBDA_JS_RUNTIME = "nodejs18.x"
+
+[functions]
+  # Function configuration
+  node_bundler = "esbuild"
+  
+# Redirect API calls to Netlify Functions
+[[redirects]]
+  from = "/api/generate-titles"
+  to = "/.netlify/functions/generate-titles"
+  status = 200
+
+[[redirects]]
+  from = "/api/generate-script"
+  to = "/.netlify/functions/generate-script"
+  status = 200
+
+[[redirects]]
+  from = "/api/extract-youtube"
+  to = "/.netlify/functions/extract-youtube"
+  status = 200
+
+[[redirects]]
+  from = "/api/upload-script"
+  to = "/.netlify/functions/upload-script"
+  status = 200
+
+# SPA fallback - serve index.html for all routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers for all pages
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Don't cache HTML files
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# API responses should not be cached
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
