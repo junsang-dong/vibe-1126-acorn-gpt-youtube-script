@@ -1,7 +1,7 @@
 import express from 'express';
 import openai, { summarizeLargeText, retryWithBackoff, estimateWordCount } from '../utils/openai.js';
 import { SYSTEM_PROMPT, generateScriptPrompt, condenseScriptPrompt, countWords } from '../utils/prompts.js';
-import { logger } from '../index.js';
+import { logger } from '../logger.js';
 
 const router = express.Router();
 

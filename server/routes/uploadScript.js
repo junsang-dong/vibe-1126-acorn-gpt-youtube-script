@@ -1,26 +1,12 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import { normalizeText } from '../utils/openai.js';
-import { logger } from '../index.js';
+import { logger } from '../logger.js';
 
 const router = express.Router();
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'server', 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'script-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req, file, cb) => {
@@ -52,41 +38,30 @@ router.post('/', upload.single('file'), async (req, res) => {
       mimetype: req.file.mimetype
     }, 'File uploaded');
 
-    // Read file content
-    const filePath = req.file.path;
-    let content = fs.readFileSync(filePath, 'utf-8');
+    let content = req.file.buffer.toString('utf-8');
 
-    // Validate UTF-8 encoding
     if (!isValidUTF8(content)) {
-      fs.unlinkSync(filePath); // Clean up
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid file encoding',
         message: 'File must be UTF-8 encoded'
       });
     }
 
-    // Normalize text
     content = normalizeText(content);
 
-    // Validate content
     if (content.trim().length === 0) {
-      fs.unlinkSync(filePath);
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Empty file',
         message: 'The uploaded file is empty'
       });
     }
 
     if (content.length < 100) {
-      fs.unlinkSync(filePath);
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Content too short',
         message: 'The file content is too short (minimum 100 characters)'
       });
     }
-
-    // Clean up file after processing
-    fs.unlinkSync(filePath);
 
     logger.info({
       originalFilename: req.file.originalname,
@@ -103,11 +78,6 @@ router.post('/', upload.single('file'), async (req, res) => {
     });
 
   } catch (error) {
-    // Clean up file if it exists
-    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
     logger.error({ 
       error: error.message, 
       stack: error.stack 

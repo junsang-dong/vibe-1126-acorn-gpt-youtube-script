@@ -403,6 +403,47 @@ npm install @sentry/browser
 
 ---
 
+## Vercel 배포
+
+이 저장소는 **정적 프론트(Vite `dist`)**와 **`api/[[...slug]].js`** 하나의 서버리스 함수(Express 앱)로 API를 제공합니다.
+
+### 1. Vercel에서 프로젝트 연결
+
+1. [Vercel 대시보드](https://vercel.com/new)에서 GitHub 저장소를 Import 합니다.
+2. **Framework Preset**은 **Vite**로 두는 것을 권장합니다(`vercel.json`의 `"framework": "vite"`와 동일).
+3. 빌드는 Vite 기본값으로 `npm run build` → 출력 디렉터리 `dist`가 사용됩니다.
+
+### 2. 환경 변수
+
+Project → **Settings → Environment Variables**에서 다음을 추가합니다.
+
+| 이름 | 설명 |
+|------|------|
+| `OPENAI_API_KEY` | OpenAI API 키 (필수) |
+| `FRONTEND_URL` | (선택) 프론트만 별도 도메인일 때 CORS용 전체 URL (예: `https://your-app.vercel.app`). 비우면 요청 Origin을 그대로 허용합니다. |
+| `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` | (선택) 레이트 리미트 커스텀 |
+
+### 3. 실행 시간(대본 스트리밍)
+
+대본 생성은 SSE 스트리밍으로 수십 초 이상 걸릴 수 있습니다. **Hobby 플랜**은 서버리스 함수 최대 실행 시간이 짧아 타임아웃이 날 수 있으니, 필요 시 **Pro 이상**으로 올리고 `vercel.json`의 `functions["api/[[...slug]].js"].maxDuration`을 플랜 상한(최대 300초 등)에 맞게 조정하세요.
+
+### 4. 서브패스 배포(GitHub Pages 등)
+
+루트가 아닌 경로에 올릴 때는 빌드 환경 변수로 `VITE_BASE_PATH`를 설정합니다(예: `/repo-name/`). Vercel 기본 루트 배포는 `/`라서 보통 설정하지 않아도 됩니다.
+
+### 5. 로컬과 동일하게 API 사용
+
+프로덕션에서도 프론트는 `/api/...`로 호출하며, Vercel이 `api/[[...slug]].js`로 같은 도메인에서 라우팅합니다.
+
+### 6. 빈 화면이 나올 때
+
+1. **브라우저 개발자 도구 → Network**: `/assets/…js`, `/assets/…css` 요청이 **200**인지 확인합니다. 응답 본문이 HTML(`<!DOCTYPE`…)이면 리라이트가 번들을 가로챈 것이므로, 저장소의 `vercel.json`이 최신인지 배포했는지 확인합니다.
+2. **Project → Settings → General**: **Clean URLs**가 켜져 있으면 SPA용 `destination`과 맞지 않아 문제가 될 수 있습니다. `vercel.json`에 `cleanUrls: false`를 두었는지 확인합니다.
+3. **환경 변수 `VITE_BASE_PATH`**: 루트 도메인(`https://xxx.vercel.app/`)에 둘 거면 **설정하지 않거나** `/`만 쓰세요. 잘못된 서브경로로 빌드되면 JS 경로가 어긋나 흰 화면이 납니다.
+4. **Framework Preset**: 대시보드에서 **Vite**로 맞추거나, `vercel.json`의 `"framework": "vite"`가 적용되도록 저장 후 다시 배포합니다.
+
+---
+
 ## 지원
 
 ### 문제 발생 시

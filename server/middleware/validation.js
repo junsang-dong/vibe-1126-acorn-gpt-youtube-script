@@ -1,4 +1,4 @@
-import { logger } from '../index.js';
+import { logger } from '../logger.js';
 
 /**
  * Sanitize input to prevent XSS attacks

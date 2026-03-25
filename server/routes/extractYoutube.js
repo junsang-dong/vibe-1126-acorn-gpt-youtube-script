@@ -1,7 +1,7 @@
 import express from 'express';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { normalizeText } from '../utils/openai.js';
-import { logger } from '../index.js';
+import { logger } from '../logger.js';
 
 const router = express.Router();
 

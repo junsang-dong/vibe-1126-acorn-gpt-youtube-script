@@ -164,12 +164,18 @@ vibe-1126-acorn-gpt-youtube-script/
    - Build settings 자동 감지 (netlify.toml)
    - Deploy 클릭
 
-3. **환경 변수 설정**
+3. **Vercel에서 배포** (대안)
+   - https://vercel.com/new 에서 GitHub 저장소 Import
+   - `vercel.json`으로 빌드·출력·API 라우팅이 설정됨
+   - Project Settings → Environment variables에 `OPENAI_API_KEY` 추가
+   - 자세한 내용은 [DEPLOYMENT.md](DEPLOYMENT.md#vercel-배포) 참고
+
+4. **환경 변수 설정** (Netlify 기준)
    - Site settings → Environment variables
    - `OPENAI_API_KEY` 추가
    - 값에 OpenAI API 키 입력
 
-4. **배포 완료!**
+5. **배포 완료!**
    - 자동으로 빌드 및 배포
    - 할당된 URL로 접속 가능
    - Custom domain 설정 가능
